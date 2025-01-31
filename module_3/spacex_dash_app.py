@@ -11,6 +11,9 @@ spacex_df = pd.read_csv("spacex_launch_dash.csv")
 max_payload = spacex_df['Payload Mass (kg)'].max()
 min_payload = spacex_df['Payload Mass (kg)'].min()
 
+spacex_df['outcome'] = spacex_df['class'].map({0: 'Failure', 1: 'Success'})
+color_map = {'Failure': '#ff0000', 'Success': '#0000ff'}
+
 # Create a dash application
 app = dash.Dash(__name__)
 
@@ -65,7 +68,7 @@ def get_pie_chart(entered_site):
         title='Total Success Launches by Site')
         return fig
     else:
-        fig = px.pie(spacex_df[spacex_df["Launch Site"] == entered_site], values='class',
+        fig = px.pie(spacex_df[spacex_df["Launch Site"] == entered_site],
         names='class',
         title=f'Total Success Launches for site {entered_site}')
         return fig
@@ -78,10 +81,25 @@ def get_pie_chart(entered_site):
 def get_scatter_chart(entered_site, payload_range):
     filtered_df = spacex_df
     if entered_site == 'ALL':
-        fig = px.scatter(filtered_df[filtered_df["Payload Mass (kg)"] >= payload_range[0]], x="Payload Mass (kg)", y="class", color="Launch Site", hover_name="Launch Site", size="class", size_max=60)
+        fig = px.scatter(
+            filtered_df[filtered_df["Payload Mass (kg)"] >= payload_range[0]],
+            x="Payload Mass (kg)",
+            y="class",
+            color="Launch Site",
+            hover_name="Launch Site",
+            size_max=60
+        )
         return fig
     else:
-        fig = px.scatter(filtered_df[(filtered_df["Payload Mass (kg)"] >= payload_range[0]) & (filtered_df["Launch Site"] == entered_site)], x="Payload Mass (kg)", y="class", color="Launch Site", hover_name="Launch Site", size="class", size_max=60)
+        fig = px.scatter(
+            filtered_df[(filtered_df["Payload Mass (kg)"] >= payload_range[0]) & (filtered_df["Launch Site"] == entered_site)],
+            x="Payload Mass (kg)",
+            y="class",
+            color="outcome",
+            color_discrete_map=color_map,
+            hover_name="Launch Site",
+            size_max=60
+        )
         return fig
 
 # Run the app
